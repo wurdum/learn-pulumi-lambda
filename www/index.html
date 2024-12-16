@@ -2,9 +2,16 @@
 
 The current time is: <span id="date"></span>.
 
+Input JWT token:
+<textarea id="token" rows="5" cols="50"></textarea>
+
 <script>
 setInterval(() => {
-    fetch('date')
+    fetch('date', {
+        headers: {
+            'Authorization': 'Bearer ' + document.getElementById("token").value
+        }
+    })
     .then(response => response.text())
     .then(data => document.getElementById("date").innerText = data)
 }, 1000);

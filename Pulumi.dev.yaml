@@ -1,3 +1,9 @@
 config:
   aws:region: eu-central-1
   pulumi:template: serverless-aws-typescript
+  learn-pulumi-lambda:jwksUri:
+    secure: AAABALHQ1gQD/1BvEK2jOLbE5YhsDh4s8P1Q4yRKrtDdxmib9VklkFuku7klPkvLQi6jCJ0LodnIdPf4yfQWwnkEdgB9S4kYelVKz8VEPBITgFwuwqmEqnnpVTVdksI=
+  learn-pulumi-lambda:audience:
+    secure: AAABABeS3dhJpHfuy0qSmMUYVqTgkCIlg7M1ME9nfeQgd+QqgyUZ+eog7ZeegU1GdzSVEra4RTqn+KcyQUZem47YpxCZ4HW9b01/4xRsaguu
+  learn-pulumi-lambda:issuer:
+    secure: AAABAM0nQjYa0fWnLKM8N3E+jvyzghH0DyFcFpVj+oslLiCMsPNEEt3Tqaozdw4LOrMctGtTTCZp3EiSm22vt6j9IdNnaURPtqU=
