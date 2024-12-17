@@ -11,7 +11,7 @@ const jwksUri = config.require("jwksUri");
 const audience = config.require("audience");
 const issuer = config.require("issuer");
 
-const authorizerLambda = new aws.lambda.CallbackFunction("authorizerLambda", {
+const authorizer = new aws.lambda.CallbackFunction("authorizerLambda", {
     callback: async (event: awsx.classic.apigateway.AuthorizerEvent) => {
         try {
             const verifiedJWT = await authenticate(event);
@@ -32,33 +32,11 @@ const authorizerLambda = new aws.lambda.CallbackFunction("authorizerLambda", {
         }
         catch (err) {
             console.log(err);
-            // Tells API Gateway to return a 401 Unauthorized response
             throw new Error("Unauthorized");
         }
     }
 });
 
-const authorizer = new aws.lambda.CallbackFunction("authorizer", {
-    callback: async (event: awsx.classic.apigateway.AuthorizerEvent, context) => {
-        const effect = event.headers?.Authorization === "token a-good-token" ? "Allow" : "Deny";
-
-        return {
-            principalId: "my-user",
-            policyDocument: {
-                Version: "2012-10-17",
-                Statement: [
-                    {
-                        Action: "execute-api:Invoke",
-                        Effect: effect,
-                        Resource: event.methodArn,
-                    },
-                ],
-            },
-        };
-    },
-});
-
-// A Lambda function to invoke
 const fn = new aws.lambda.CallbackFunction("fn", {
     callback: async (ev, ctx) => {
         return {
@@ -68,7 +46,6 @@ const fn = new aws.lambda.CallbackFunction("fn", {
     }
 })
 
-// A REST API to route requests to HTML content and the Lambda function
 const api = new apigateway.RestAPI("api", {
     routes: [
         { path: "/", localPath: "www"},
@@ -77,32 +54,18 @@ const api = new apigateway.RestAPI("api", {
             method: "GET",
             eventHandler: fn,
             authorizers: [
-                // {
-                //     authType: "custom",
-                //     parameterName: "Authorization",
-                //     type: "request",
-                //     identitySource: ["method.request.header.Authorization"],
-                //     handler: authorizer,
-                // },
                 {
                     authType: "custom",
+                    authorizerName: "jwt-rsa-custom-authorizer",
                     parameterName: "Authorization",
-                    type: "request",
+                    parameterLocation: "header",
+                    type: "token",
                     identitySource: ["method.request.header.Authorization"],
-                    handler: authorizerLambda,
+                    handler: authorizer,
                     identityValidationExpression: "^Bearer [-0-9a-zA-Z\._]*$",
-                    authorizerResultTtlInSeconds: 3600,
+                    authorizerResultTtlInSeconds: 300,
                 }
             ]
-            // authorizers: [
-            //     awsx.classic.apigateway.getTokenLambdaAuthorizer({
-            //         authorizerName: "jwt-rsa-custom-authorizer",
-            //         header: "Authorization",
-            //         handler: authorizerLambda,
-            //         identityValidationExpression: "^Bearer [-0-9a-zA-Z\._]*$",
-            //         authorizerResultTtlInSeconds: 3600,
-            //     })
-            // ]
         },
     ],
 });
